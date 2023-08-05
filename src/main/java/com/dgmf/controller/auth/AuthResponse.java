@@ -1,4 +1,4 @@
-package com.dgmf.entity.utilityclasses;
+package com.dgmf.controller.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

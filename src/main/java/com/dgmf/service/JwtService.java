@@ -8,6 +8,6 @@ import java.util.HashMap;
 
 public interface JwtService {
     String getToken(UserDetails savedUser);
-    String AssignTokenSavedUser(HashMap<String, Object> extraClaims, UserDetails savedUser);
+    String getToken(HashMap<String, Object> extraClaims, UserDetails savedUser);
     Key getKey();
 }

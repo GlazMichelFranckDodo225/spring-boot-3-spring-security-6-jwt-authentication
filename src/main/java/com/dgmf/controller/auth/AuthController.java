@@ -1,9 +1,8 @@
-package com.dgmf.controller;
+package com.dgmf.controller.auth;
 
 import com.dgmf.service.AuthService;
 import com.dgmf.dto.LoginRequestUserDTO;
 import com.dgmf.dto.RegisterRequestUserDTO;
-import com.dgmf.entity.utilityclasses.AuthResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
