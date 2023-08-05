@@ -9,6 +9,7 @@ import com.dgmf.dto.RegisterRequestUserDTO;
 import com.dgmf.entity.utilityclasses.AuthResponse;
 import com.dgmf.service.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public AuthResponse login(LoginRequestUserDTO loginRequestUserDTO) {
@@ -23,21 +25,27 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthResponse register(RegisterRequestUserDTO registerRequestUserDTO) {
+    public AuthResponse register(
+            RegisterRequestUserDTO registerRequestUserDTO)
+        {
         User user = User.builder()
                 .firstName(registerRequestUserDTO.getFirstName())
                 .lastName(registerRequestUserDTO.getLastName())
                 .username(registerRequestUserDTO.getUsername())
                 .email(registerRequestUserDTO.getEmail())
-                .password(registerRequestUserDTO.getPassword())
+                .password(passwordEncoder.encode(
+                        registerRequestUserDTO.getPassword()
+                        )
+                )
                 .role(Role.USER)
                 .build();
 
-        User savedUser = userRepository.save(user);
+        // User savedUser = userRepository.save(user);
+        userRepository.save(user);
 
         // Return a Token after saving the User
         return AuthResponse.builder()
-                .token(jwtService.getToken(savedUser))
+                .token(jwtService.getToken(user))
                 .build();
     }
 }
