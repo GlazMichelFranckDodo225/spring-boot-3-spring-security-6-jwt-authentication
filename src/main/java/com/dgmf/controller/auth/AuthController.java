@@ -11,22 +11,27 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
+
+    // Takes the Registration Request and Responds with a Token
+    @PostMapping("/register")
+    public ResponseEntity<AuthResponse> register(
+            @RequestBody RegisterRequestUserDTO registerRequest) {
+        System.out.println("Stack Trace - AuthController - register()");
+
+        return ResponseEntity.ok(authService.register(registerRequest));
+    }
 
     // Takes the Authentication Request and Responds with a Token
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(
             @RequestBody LoginRequestUserDTO loginRequest)
         {
-        return ResponseEntity.ok(authService.login(loginRequest));
-    }
+        System.out.println("Stack Trace - AuthController - login()");
 
-    @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(
-            @RequestBody RegisterRequestUserDTO registerRequest) {
-        return ResponseEntity.ok(authService.register(registerRequest));
+        return ResponseEntity.ok(authService.login(loginRequest));
     }
 }

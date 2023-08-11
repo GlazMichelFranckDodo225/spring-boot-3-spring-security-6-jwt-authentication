@@ -8,9 +8,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
-public class AppController {
-    @PostMapping("/welcome")
-    public String welcome() {
+public class HomeController {
+    @PostMapping("/home")
+    public String home() {
+        System.out.println("Stack Trace - HomeController - home()");
+
         return "Welcome from Secure Endpoint";
     }
 }

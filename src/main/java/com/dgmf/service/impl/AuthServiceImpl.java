@@ -1,7 +1,7 @@
 package com.dgmf.service.impl;
 
 import com.dgmf.entity.User;
-import com.dgmf.entity.utilityclasses.Role;
+import com.dgmf.entity.enums.Role;
 import com.dgmf.repository.UserRepository;
 import com.dgmf.service.AuthService;
 import com.dgmf.dto.LoginRequestUserDTO;
@@ -23,49 +23,70 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
 
-
-    @Override
-    public AuthResponse login(LoginRequestUserDTO loginRequestUserDTO) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequestUserDTO.getUsername(),
-                        loginRequestUserDTO.getPassword()
-                )
-        );
-
-        UserDetails userDetails = userRepository.findByUsername(
-                loginRequestUserDTO.getUsername()
-        ).orElseThrow();
-
-        String token = jwtService.getToken(userDetails);
-
-        return AuthResponse.builder()
-                .token(token)
-                .build();
-    }
-
+    // This Method allows to create a "User", save him into the DB and
+    // returns, to the Client, the generated JWT Token related to him
     @Override
     public AuthResponse register(
             RegisterRequestUserDTO registerRequestUserDTO)
-        {
+    {
+        // Creates the "User" from the coming Request
         User user = User.builder()
                 .firstName(registerRequestUserDTO.getFirstName())
                 .lastName(registerRequestUserDTO.getLastName())
                 .username(registerRequestUserDTO.getUsername())
                 .email(registerRequestUserDTO.getEmail())
                 .password(passwordEncoder.encode(
-                        registerRequestUserDTO.getPassword()
+                                registerRequestUserDTO.getPassword()
                         )
                 )
-                .role(Role.USER) // Default Role
+                .role(Role.ROLE_USER) // Default Role
                 .build();
 
-        User savedUser = userRepository.save(user);
-        // userRepository.save(user);
+        // User savedUser = userRepository.save(user);
+        // Saves the "User" that we've just created
+        userRepository.save(user);
 
-        // Return a Token after saving the User
+        // Generates the JWT Token for the just saved User
+        var jwtTokenSavedUser = jwtService.getToken(user);
+
+        System.out.println("Stack Trace - AuthServiceImpl - register() \nReturns the generated JWT Token to the Client");
+
+        // Returns the generated JWT Token to the Client
         return AuthResponse.builder()
-                .token(jwtService.getToken(savedUser))
+                .token(jwtTokenSavedUser)
+                .build();
+    }
+
+    @Override
+    public AuthResponse login(LoginRequestUserDTO loginRequestUserDTO) {
+        // The "AuthenticationManager" will check "Username" and "Password"
+        // An Exception will throw if the "Username" or " Password"
+        // are not correct
+        authenticationManager.authenticate( /*
+                .authenticate() ==> Method of the "Authentication Manager"
+                which allows to authenticate "User" based on his
+                "Username" and "Password"
+                */
+                new UsernamePasswordAuthenticationToken(
+                        loginRequestUserDTO.getUsername(),
+                        loginRequestUserDTO.getPassword()
+                )
+        );
+
+        // Here, "Username" and "Password" are correct.
+        // Next step ==> Find the User into the DB based on
+        // his "Username" coming from the Request
+        UserDetails userFound = userRepository
+                .findByUsername(loginRequestUserDTO.getUsername()).orElseThrow();
+
+        // Generates a JWT Token for the retrieved User
+        String jwtTokenUserFound = jwtService.getToken(userFound);
+
+        System.out.println("Stack Trace - AuthServiceImpl - login() \nReturns the JWT Token to the Client");
+
+        // Returns the JWT Token to the Client
+        return AuthResponse.builder()
+                .token(jwtTokenUserFound)
                 .build();
     }
 }

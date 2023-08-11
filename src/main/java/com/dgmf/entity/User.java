@@ -1,6 +1,6 @@
 package com.dgmf.entity;
 
-import com.dgmf.entity.utilityclasses.Role;
+import com.dgmf.entity.enums.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,6 +31,11 @@ import java.util.List;
                 )
         }
 )
+/* When Spring Security starts, and set up the application, it
+uses a "userDetails" object which comes from the "UserDetails"
+Interface that contains bunch of Methods. To use these Methods,
+implementing "UserDetails" Interface is requested
+*/
 public class User implements UserDetails {
     @Id
     @GeneratedValue(
@@ -47,6 +52,8 @@ public class User implements UserDetails {
     private String firstName;
     @Column(name = "last_name", nullable = false, length = 20)
     private String lastName;
+    // Pay attention to the designation "username" which has a
+    // special meaning for the "UserDetails" Interface
     @Column(name = "username", nullable = false, length = 20)
     private String username;
 
@@ -62,6 +69,7 @@ public class User implements UserDetails {
     // Hibernate will automatically take the current Timestamp of the JVM
     @UpdateTimestamp
     private LocalDateTime lastUpdated;
+    @Enumerated(EnumType.STRING)
     private Role role;
 
     @Override

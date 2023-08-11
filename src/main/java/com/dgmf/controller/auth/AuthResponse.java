@@ -7,5 +7,6 @@ import lombok.NoArgsConstructor;
 
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class AuthResponse {
+    // The JWT Token that will be sent back to the Client
     private String token;
 }
