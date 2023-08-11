@@ -51,21 +51,14 @@ public class AuthServiceImpl implements AuthService {
         User savedUser = userRepository.save(user);
 
         // Generates the JWT Token for the just saved User
-        var jwtTokenSavedUser = jwtService.getToken(user);
+        String jwtTokenSavedUser = jwtService.getToken(user);
 
-        // Saves or Persists the generated Token into the DB
-        var SavesOrPersistsGeneratedToken = Token.builder()
-                .user(savedUser)
-                .token(jwtTokenSavedUser)
-                .tokenType(TokenType.BEARER)
-                .revoked(false)
-                .expired(false)
-                .build();
+        // Saves the "Token" of the registered User
+        savedUserToken(savedUser, jwtTokenSavedUser);
 
-        // Saves the "Token" that we've just created
-        tokenRepository.save(SavesOrPersistsGeneratedToken);
-
-        System.out.println("Stack Trace - AuthServiceImpl - register() \nReturns the generated JWT Token to the Client");
+        System.out.println("Stack Trace - AuthServiceImpl - register() \nReturns " +
+                "the \"Token\" of the registered User to the " +
+                "Client : " + jwtTokenSavedUser);
 
         // Returns the generated JWT Token to the Client
         return AuthResponse.builder()
@@ -92,17 +85,37 @@ public class AuthServiceImpl implements AuthService {
         // Here, "Username" and "Password" are correct.
         // Next step ==> Find the User into the DB based on
         // his "Username" coming from the Request
-        UserDetails userFound = userRepository
+        User userFound = userRepository
                 .findByUsername(loginRequestUserDTO.getUsername()).orElseThrow();
 
         // Generates a JWT Token for the retrieved User
         String jwtTokenUserFound = jwtService.getToken(userFound);
 
-        System.out.println("Stack Trace - AuthServiceImpl - login() \nReturns the JWT Token to the Client");
+        // Saves the "Token" of the connected User
+        savedUserToken(userFound, jwtTokenUserFound);
+
+        System.out.println("Stack Trace - AuthServiceImpl - login() \nReturns " +
+                "the \"Token\" of the connected User to the " +
+                "Client : " + jwtTokenUserFound);
 
         // Returns the JWT Token to the Client
         return AuthResponse.builder()
                 .token(jwtTokenUserFound)
                 .build();
+    }
+
+    private Token savedUserToken(User savedUser, String jwtTokenSavedUser) {
+        // Saves or Persists the generated Token into the DB
+        Token savedUserToken = Token.builder()
+                .user(savedUser)
+                .token(jwtTokenSavedUser)
+                .tokenType(TokenType.BEARER)
+                .revoked(false)
+                .expired(false)
+                .build();
+
+        // Saves the "Token" that we've just created
+        tokenRepository.save(savedUserToken);
+        return savedUserToken;
     }
 }
