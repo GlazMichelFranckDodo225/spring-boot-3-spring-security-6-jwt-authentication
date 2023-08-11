@@ -1,7 +1,10 @@
 package com.dgmf.service.impl;
 
+import com.dgmf.entity.Token;
 import com.dgmf.entity.User;
 import com.dgmf.entity.enums.Role;
+import com.dgmf.entity.enums.TokenType;
+import com.dgmf.repository.TokenRepository;
 import com.dgmf.repository.UserRepository;
 import com.dgmf.service.AuthService;
 import com.dgmf.dto.LoginRequestUserDTO;
@@ -19,6 +22,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
+    private final TokenRepository tokenRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
@@ -42,12 +46,24 @@ public class AuthServiceImpl implements AuthService {
                 .role(Role.ROLE_USER) // Default Role
                 .build();
 
-        // User savedUser = userRepository.save(user);
+        // userRepository.save(user);
         // Saves the "User" that we've just created
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
 
         // Generates the JWT Token for the just saved User
         var jwtTokenSavedUser = jwtService.getToken(user);
+
+        // Saves or Persists the generated Token into the DB
+        var SavesOrPersistsGeneratedToken = Token.builder()
+                .user(savedUser)
+                .token(jwtTokenSavedUser)
+                .tokenType(TokenType.BEARER)
+                .revoked(false)
+                .expired(false)
+                .build();
+
+        // Saves the "Token" that we've just created
+        tokenRepository.save(SavesOrPersistsGeneratedToken);
 
         System.out.println("Stack Trace - AuthServiceImpl - register() \nReturns the generated JWT Token to the Client");
 
