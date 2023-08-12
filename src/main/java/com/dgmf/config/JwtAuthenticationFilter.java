@@ -1,5 +1,6 @@
 package com.dgmf.config;
 
+import com.dgmf.repository.TokenRepository;
 import com.dgmf.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -33,6 +34,7 @@ every time the Application gets a Request
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final TokenRepository tokenRepository;
 
     @Override
     protected void doFilterInternal(
@@ -85,14 +87,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             UserDetails userDetails = userDetailsService
                     .loadUserByUsername(username);
 
+            // Checking if the JWT Token is not expired or revoked inside the DB
+            var isTokenValidIntoTheDB = tokenRepository.findByToken(jwtToken)
+                    .map(token -> !token.isExpired() && !token.isRevoked())
+                    .orElse(false);
+
             /* 7. Using the "UserDetailsService", start of the
             validation Process of the JWT Token for the specific User
                 - 7.1 If the JWT Token is not valid (is expired, is not
                 for the specific User, etc ...) ==> 403 response to
                 the Client ==> "HTTP 403 - Invalid JWT Token"
             */
-            // Check if the JWT token is valid or not
-            if(jwtService.isTokenValid(jwtToken, userDetails)) {
+            // Checks if the JWT token is valid or not from the Request and
+            // into the DB
+            if(jwtService.isTokenValid(jwtToken, userDetails)
+                    && isTokenValidIntoTheDB) {
                 // 7.2 The JWT Token is valid ==> Setting up a Connected User
                 // Instantiation of a "UsernamePasswordAuthenticationToken"
                 UsernamePasswordAuthenticationToken authToken =
