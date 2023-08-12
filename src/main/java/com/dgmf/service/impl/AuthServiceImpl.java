@@ -91,6 +91,10 @@ public class AuthServiceImpl implements AuthService {
         // Generates a JWT Token for the retrieved User
         String jwtTokenUserFound = jwtService.getToken(userFound);
 
+        // Revocation of all existing Tokens of the logged-in User before
+        // saving the last one
+        revokeAllUserTokens(userFound);
+
         // Saves the "Token" of the connected User
         savedUserToken(userFound, jwtTokenUserFound);
 
@@ -104,7 +108,8 @@ public class AuthServiceImpl implements AuthService {
                 .build();
     }
 
-    private Token savedUserToken(User savedUser, String jwtTokenSavedUser) {
+    @Override
+    public Token savedUserToken(User savedUser, String jwtTokenSavedUser) {
         // Saves or Persists the generated Token into the DB
         Token savedUserToken = Token.builder()
                 .user(savedUser)
@@ -117,5 +122,23 @@ public class AuthServiceImpl implements AuthService {
         // Saves the "Token" that we've just created
         tokenRepository.save(savedUserToken);
         return savedUserToken;
+    }
+
+    // Revokes all existing Tokens for a specific User
+    @Override
+    public void revokeAllUserTokens(User user) {
+        Long userId = user.getId();
+        var validUserTokens = tokenRepository.findAllValidTokensByUser(userId);
+
+        if(validUserTokens.isEmpty()) return;
+
+        validUserTokens.forEach(
+                token -> {
+                    token.setExpired(true);
+                    token.setRevoked(true);
+                }
+        );
+
+        tokenRepository.saveAll(validUserTokens);
     }
 }
