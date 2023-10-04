@@ -76,7 +76,9 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority((role.name())));
+        // return List.of(new SimpleGrantedAuthority((role.name())));
+        // To allow Spring to use the list of Roles for each User
+        return role.getAuthorities();
     }
 
     @Override
